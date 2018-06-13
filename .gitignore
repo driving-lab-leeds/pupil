@@ -20,7 +20,14 @@ Thumbs.db
 # user generated settings files will also be ignored #
 recordings/
 recordings
-capture_settings/
+
+#Added by OG
+capture_settings/*
+!capture_settings/plugins
+
+
+
+
 service_settings/
 player_settings/
 settings/
