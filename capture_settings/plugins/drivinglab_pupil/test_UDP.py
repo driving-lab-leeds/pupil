@@ -1,7 +1,7 @@
 import socket as s
 
 #send settings
-PORT = 5000		
+PORT = 5001	
 SIZE = 1024
 address  = 'localhost' 
 

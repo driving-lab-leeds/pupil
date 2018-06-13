@@ -62,7 +62,7 @@ class Venlab_Remote(Plugin):
             #setup receive socket
         PORT = 5000
         SIZE = 1024
-        host = s.gethostbyname('localhost')
+        host = s.gethostbyname('0.0.0.0')
 
         self.eyetrikesock = s.socket( s.AF_INET, s.SOCK_DGRAM )
 
