@@ -48,6 +48,7 @@ class pupil_comms:
 
     def close(self):
 
+        self.send('q')
         self.server_socket.close()
 
 
@@ -59,6 +60,6 @@ if __name__ == '__main__':
 
     # comms.send_message_from_console()
 
-    # comms.send('P')
+    comms.send('P')
 
-    comms.close()
+    comms.send_message_from_console()

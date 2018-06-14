@@ -27,10 +27,11 @@ import socket as s
 def rcv_msg_from_venlab(sock, SIZE):
 
   
-    sock.listen(1)    
+    sock.listen(1)
+    
 
     while True:
-        
+
         clientsocket, addr = sock.accept() #Accept connection requests
 
         msg = 'Connection accepted'
@@ -40,7 +41,6 @@ def rcv_msg_from_venlab(sock, SIZE):
             try:
                 data, addr = clientsocket.recvfrom(SIZE)
             except ConnectionResetError:
-            
                 yield None                
                 break
 
@@ -90,22 +90,23 @@ class Venlab_Remote(Plugin):
 
         self.proxy = bh.Task_Proxy('Background', rcv_msg_from_venlab, args=(self.eyetrikesock, SIZE))
 
+        self.eyetrikesocket_live = True
+
     def recent_events(self, events):
 
+        if self.eyetrikesocket_live:
             # fetch all available results
             for msg in self.proxy.fetch():
-                
-                if msg is None:
-                    logger.info("Venlab socket connection is down")
-                else:
-                    self.forward_message(msg)
+                               
+                self.forward_message(msg)
 
     def forward_message(self, msg):
 
         if msg in ('R','r','C','c','T','t'):
 
             self.req.send_string(msg) #send through to pupil_remote
-            recv = self.req.recv_string() #get bounce-back                
+            recv = self.req.recv_string() #get bounce-back
+                
 
         elif msg == 'P':
 
@@ -126,13 +127,18 @@ class Venlab_Remote(Plugin):
             self.req.send_string(topic, flags = zmq.SNDMORE)
             self.req.send(payload)
             recv = self.req.recv_string()
+
+        elif msg == 'q':
+            self.eyetrikesocket_live = False
+            self.cleanup()
                     
     def cleanup(self):
         """gets called when the plugin get terminated.
            This happens either voluntarily or forced.
         """
-        self.eyetrikesock.close()
         self.proxy.cancel()
+        self.eyetrikesock.close()
+        
 
     def on_notify(self, notification):
         """send simple string messages to control application functions.
