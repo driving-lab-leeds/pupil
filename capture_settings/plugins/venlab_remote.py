@@ -28,28 +28,26 @@ from calibration_routines.calibrate import closest_matches_monocular
 from collections import namedtuple
 Calculation_Result = namedtuple('Calculation_Result', ['result', 'num_used', 'num_total'])
 
-def rcv_msg_from_venlab(sock, SIZE):
 
-  
-    sock.listen(1)
-    
+def recv_socket_process(host, PORT, SIZE):
+
+
+    recv_sock = s.socket( s.AF_INET, s.SOCK_DGRAM )
+    recv_sock.setsockopt(s.SOL_SOCKET,s.SO_REUSEADDR,1)
+       
+    recv_sock.bind((host, PORT))
+
 
     while True:
 
-        clientsocket, addr = sock.accept() #Accept connection requests
+        data, addr = recv_sock.recvfrom(SIZE)
 
-        msg = 'Connection accepted'
-        clientsocket.send(msg.encode())
-
-        while True:
-            try:
-                data, addr = clientsocket.recvfrom(SIZE)
-            except ConnectionResetError:
-                yield None                
-                break
-
+        if data: 
+            #decode message
             msg = data.decode('utf-8')
             yield msg
+
+
 
 
 class Venlab_Remote(Plugin):
@@ -63,9 +61,11 @@ class Venlab_Remote(Plugin):
         super().__init__(g_pool)
         self.order = .02  
 
+
+        self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+   
         self.connect_to_pupil_remote()
         self.start_eyetrike_server()
-
 
         #Variables for calculating calibration accuracy
 
@@ -96,37 +96,37 @@ class Venlab_Remote(Plugin):
     def start_eyetrike_server(self):
 
         #setup receive socket
-        PORT = 5000
+        recv_PORT = 5000
         SIZE = 1024
-        host = '0.0.0.0'
+        recv_host = '0.0.0.0'
+     
+        self.recv_proxy = bh.Task_Proxy('Background', recv_socket_process, args=( recv_host, recv_PORT, SIZE))
 
-        self.eyetrikesock = s.socket( s.AF_INET, s.SOCK_STREAM)
 
-        self.eyetrikesock.setsockopt(s.SOL_SOCKET, s.SO_REUSEADDR, 1)
 
-        self.eyetrikesock.bind((host, PORT))
+        #setup send socket
+        send_PORT = 5015 #needs to match venlab
+      
+        self.send_sock = s.socket(s.AF_INET, s.SOCK_DGRAM)
+        self.send_addr = (self.send_IP, send_PORT)
 
-        logger.info("Venlab remote has started a server on port: {}".format(PORT))
 
-        self.proxy = bh.Task_Proxy('Background', rcv_msg_from_venlab, args=(self.eyetrikesock, SIZE))
-
-        self.eyetrikesocket_live = True
 
     def recent_events(self, events):
+        
+        for msg in self.recv_proxy.fetch():
+            
+            self.forward_message(msg)
 
-        if self.eyetrikesocket_live:
-            # fetch all available results
-            for msg in self.proxy.fetch():
-                               
-                self.forward_message(msg)
 
     def forward_message(self, msg):
 
         if msg in ('R','r','C','c','T','t'):
 
             self.req.send_string(msg) #send through to pupil_remote
-            recv = self.req.recv_string() #get bounce-back
-                
+            recv = self.req.recv_string() #get bounce-back                
+        
+            self.send_rply('ipc', recv)
 
         elif msg == 'P':
 
@@ -138,6 +138,9 @@ class Venlab_Remote(Plugin):
             self.req.send(payload)
             recv = self.req.recv_string()
 
+            self.send_rply('ipc', recv)
+
+
         elif msg == 'p':
 
             notification = {'subject': 'accuracy_test.should_stop'}
@@ -148,17 +151,16 @@ class Venlab_Remote(Plugin):
             self.req.send(payload)
             recv = self.req.recv_string()
 
-        elif msg == 'q':
-            self.eyetrikesocket_live = False
-            self.cleanup()
+            self.send_rply('ipc', recv)
+
                     
     def cleanup(self):
         """gets called when the plugin get terminated.
            This happens either voluntarily or forced.
         """
-        self.proxy.cancel()
-        self.eyetrikesock.close()
         
+        self.send_sock.close()
+                   
 
     def on_notify(self, notification):
         """send simple string messages to control application functions.
@@ -179,6 +181,16 @@ class Venlab_Remote(Plugin):
             if self.recent_input and self.recent_labels:
                 self.recalculate()
 
+                msg = 'Accuracy.{}.Precision.{}'.format(self.accuracy, self.precision)
+
+                self.send_rply('calibration', msg)
+
+    def send_rply(self, subject, msg):
+
+        out = '{}.{}'.format(subject, msg)
+        self.send_sock.sendto(out.encode(), self.send_addr)
+
+
     def recalculate(self):
         assert self.recent_input and self.recent_labels
         prediction = self.g_pool.active_gaze_mapping_plugin.map_batch(self.recent_input)
@@ -189,7 +201,7 @@ class Venlab_Remote(Plugin):
         self.precision = results[1].result
         self.error_lines = results[2]
 
-        print("Accuracy = {}, precision = {}".format(self.accuracy, self.precision))
+     
 
     def calc_acc_prec_errlines(self, gaze_pos, ref_pos, intrinsics):
         width, height = intrinsics.resolution
