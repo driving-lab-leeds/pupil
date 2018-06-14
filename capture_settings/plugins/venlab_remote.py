@@ -26,11 +26,27 @@ import socket as s
 
 def rcv_msg_from_venlab(sock, SIZE):
 
-    while True:
+  
+    sock.listen(1)    
 
-        data, addr = sock.recvfrom(SIZE)
-        msg = data.decode('utf-8')
-        yield msg
+    while True:
+        
+        clientsocket, addr = sock.accept() #Accept connection requests
+
+        msg = 'Connection accepted'
+        clientsocket.send(msg.encode())
+
+        while True:
+            try:
+                data, addr = clientsocket.recvfrom(SIZE)
+            except ConnectionResetError:
+            
+                yield None                
+                break
+
+            msg = data.decode('utf-8')
+            yield msg
+
 
 class Venlab_Remote(Plugin):
     """
@@ -59,36 +75,37 @@ class Venlab_Remote(Plugin):
 
     def start_eyetrike_server(self):
 
-            #setup receive socket
+        #setup receive socket
         PORT = 5000
         SIZE = 1024
-        host = s.gethostbyname('0.0.0.0')
+        host = '0.0.0.0'
 
-        self.eyetrikesock = s.socket( s.AF_INET, s.SOCK_DGRAM )
+        self.eyetrikesock = s.socket( s.AF_INET, s.SOCK_STREAM)
 
         self.eyetrikesock.setsockopt(s.SOL_SOCKET, s.SO_REUSEADDR, 1)
-        et_addr = (host,PORT)
 
+        self.eyetrikesock.bind((host, PORT))
 
-        self.eyetrikesock.bind(et_addr)
-
-        logger.info("venlab remote has started a server on port: {}".format(PORT))
+        logger.info("Venlab remote has started a server on port: {}".format(PORT))
 
         self.proxy = bh.Task_Proxy('Background', rcv_msg_from_venlab, args=(self.eyetrikesock, SIZE))
 
     def recent_events(self, events):
+
             # fetch all available results
             for msg in self.proxy.fetch():
-          
-                self.forward_message(msg)
+                
+                if msg is None:
+                    logger.info("Venlab socket connection is down")
+                else:
+                    self.forward_message(msg)
 
     def forward_message(self, msg):
 
         if msg in ('R','r','C','c','T','t'):
 
             self.req.send_string(msg) #send through to pupil_remote
-            recv = self.req.recv_string() #get bounce-back
-                
+            recv = self.req.recv_string() #get bounce-back                
 
         elif msg == 'P':
 

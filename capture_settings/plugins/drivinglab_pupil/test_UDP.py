@@ -1,9 +1,9 @@
 import socket as s
 
 #send settings
-PORT = 5001	
+PORT = 5000
 SIZE = 1024
-address  = 'localhost' 
+address  = '0.0.0.0' 
 
 eyetrikesock = s.socket( s.AF_INET, s.SOCK_DGRAM )
 et_addr = (address, PORT)
