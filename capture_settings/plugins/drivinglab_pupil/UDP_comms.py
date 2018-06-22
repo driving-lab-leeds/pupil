@@ -103,6 +103,13 @@ if __name__ == '__main__':
 
     comms = pupil_comms()
 
+    #Check the connection is live
+    comms.send_msg('test')
+    time.sleep()
+    print(comms.poll_msg())
+
+
+    #Test in cosole
     comms.send_message_from_console()
 
 
