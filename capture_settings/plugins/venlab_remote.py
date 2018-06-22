@@ -98,7 +98,7 @@ class Venlab_Remote(Plugin):
         #setup receive socket
         recv_PORT = 5000
         SIZE = 1024
-        recv_host = '0.0.0.0'
+        recv_host = '192.168.0.2'
      
         self.recv_proxy = bh.Task_Proxy('Background', recv_socket_process, args=( recv_host, recv_PORT, SIZE))
 
@@ -153,6 +153,9 @@ class Venlab_Remote(Plugin):
 
             self.send_rply('ipc', recv)
 
+        elif msg == 'test':
+
+            self.send_rply('comms', 'online')
                     
     def cleanup(self):
         """gets called when the plugin get terminated.
