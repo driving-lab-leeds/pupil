@@ -28,7 +28,6 @@ from calibration_routines.calibrate import closest_matches_monocular
 from collections import namedtuple
 Calculation_Result = namedtuple('Calculation_Result', ['result', 'num_used', 'num_total'])
 
-print("hi")
 
 def recv_socket_process(host, PORT, SIZE):
 
