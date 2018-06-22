@@ -1,10 +1,15 @@
 import socket as s
 import multiprocessing as mp
+import time
 
 
 class pupil_comms:
 
-    def __init__(self, send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5015, SIZE = 1024):
+    def __init__(self, send_IP = '192.168.0.2', send_PORT = 5000, recv_IP = '192.168.0.1', recv_PORT = 5015, SIZE = 1024):
+        """args:
+            send_IP: IP of machine you are sending requests to (Eyetrike)
+            recv_IP: IP of machine running this code
+        """
 
         self.send_IP = send_IP
         self.send_PORT = send_PORT
@@ -16,6 +21,10 @@ class pupil_comms:
 
         self.start_send_socket()
         self.start_recv_socket()
+
+        self.send_msg("test")
+        time.sleep(.25)
+        print (self.poll_msg())
 
 
     def start_send_socket(self):
@@ -31,7 +40,8 @@ class pupil_comms:
         self.recv_sock.setsockopt(s.SOL_SOCKET,s.SO_REUSEADDR,1)
 
         self.parent_conn, self.child_conn = mp.Pipe(False)
-        self.recv_process = mp.Process(target = message_receiver, name = 'recv_process', args = (self.recv_sock, self.child_conn, self.SIZE), daemon = True)
+        self.recv_process = mp.Process(target = message_receiver, args = (self.recv_sock, self.child_conn, self.SIZE))
+        self.recv_process.daemon = True
 
         self.recv_process.start()
         
@@ -62,7 +72,9 @@ class pupil_comms:
             all_messages.append(self.parent_conn.recv())
 
            
-        print(all_messages)
+       # print(all_messages)
+
+        return all_messages
 
         
 
@@ -91,7 +103,7 @@ if __name__ == '__main__':
     comms.send_message_from_console()
 
 
-    comms.poll_msg()
+    print (comms.poll_msg())
 
     # comms.send_message_from_console()
     
