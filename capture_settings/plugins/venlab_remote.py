@@ -62,7 +62,7 @@ class Venlab_Remote(Plugin):
         self.order = .02  
 
 
-        self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
    
         self.connect_to_pupil_remote()
         self.start_eyetrike_server()
