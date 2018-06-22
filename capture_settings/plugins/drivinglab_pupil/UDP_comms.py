@@ -6,7 +6,14 @@ import time
 class pupil_comms:
 
     def __init__(self, send_IP = '192.168.0.2', send_PORT = 5000, recv_IP = '192.168.0.1', recv_PORT = 5015, SIZE = 1024):
-        """args:
+        """
+        When you create an instance it will set up all the connections and send a test signal to the Eyetrike machine.
+        
+
+        To check the connection is live call self.send_msg("test"). Then sleep for half a second or so. Then call self.poll_msg(). This should return 'comms.online'
+        
+        
+        args:
             send_IP: IP of machine you are sending requests to (Eyetrike)
             recv_IP: IP of machine running this code
         """
@@ -21,12 +28,7 @@ class pupil_comms:
 
         self.start_send_socket()
         self.start_recv_socket()
-
-        self.send_msg("test")
-        time.sleep(.25)
-        print (self.poll_msg())
-
-
+        
     def start_send_socket(self):
 
         self.send_sock = s.socket( s.AF_INET, s.SOCK_DGRAM )
@@ -34,13 +36,8 @@ class pupil_comms:
 
     def start_recv_socket(self):
 
-        self.recv_sock = s.socket( s.AF_INET, s.SOCK_DGRAM )
-        self.recv_sock.bind((self.recv_IP, self.recv_PORT))
-
-        self.recv_sock.setsockopt(s.SOL_SOCKET,s.SO_REUSEADDR,1)
-
         self.parent_conn, self.child_conn = mp.Pipe(False)
-        self.recv_process = mp.Process(target = message_receiver, args = (self.recv_sock, self.child_conn, self.SIZE))
+        self.recv_process = mp.Process(target = message_receiver, args = (self.recv_IP, self.recv_PORT, self.child_conn, self.SIZE))
         self.recv_process.daemon = True
 
         self.recv_process.start()
@@ -80,12 +77,18 @@ class pupil_comms:
 
   
 
-def message_receiver(recv_socket, output_pipe, SIZE = 1024):
+def message_receiver(recv_IP, recv_PORT, output_pipe, SIZE = 1024):
 
     """Recieve messages from a socket and flush the messages to a pipe"""
 
+    
+    recv_sock = s.socket( s.AF_INET, s.SOCK_DGRAM )
+    recv_sock.bind((recv_IP, recv_PORT))
+
+    recv_sock.setsockopt(s.SOL_SOCKET,s.SO_REUSEADDR,1)
+
     while True:
-        data, addr = recv_socket.recvfrom(SIZE)
+        data, addr = recv_sock.recvfrom(SIZE)
 
         if data: 
             #decode message
