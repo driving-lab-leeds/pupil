@@ -24,7 +24,7 @@ recordings
 #Added by OG
 capture_settings/*
 !capture_settings/plugins
-
+settings.json
 
 
 
