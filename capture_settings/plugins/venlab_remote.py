@@ -62,11 +62,17 @@ class Venlab_Remote(Plugin):
         self.order = .02  
 
 
-        # self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
-        # self.recv_host = '192.168.0.2'
+        self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
+        self.send_port = 5020
 
-        self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
-        self.recv_host = '0.0.0.0'
+        self.recv_host = '192.168.0.2'
+        self.recv_port = 5000
+
+        # self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        # self.send_port = 5020
+
+        # self.recv_host = '0.0.0.0'
+        # self.recv_port = 5000
 
    
         self.connect_to_pupil_remote()
@@ -101,8 +107,9 @@ class Venlab_Remote(Plugin):
     def start_eyetrike_server(self):
 
         #setup receive socket
-        recv_PORT = 5000
+        recv_PORT = self.recv_port 
         SIZE = 1024
+
         recv_host = self.recv_host
      
         self.recv_proxy = bh.Task_Proxy('Background', recv_socket_process, args=( recv_host, recv_PORT, SIZE))
@@ -110,7 +117,7 @@ class Venlab_Remote(Plugin):
 
 
         #setup send socket
-        send_PORT = 5015 #needs to match venlab
+        send_PORT = self.send_port #needs to match venlab
       
         self.send_sock = s.socket(s.AF_INET, s.SOCK_DGRAM)
         self.send_addr = (self.send_IP, send_PORT)
@@ -121,6 +128,7 @@ class Venlab_Remote(Plugin):
         
         for msg in self.recv_proxy.fetch():
             
+          
             self.forward_message(msg)
 
 
@@ -128,6 +136,7 @@ class Venlab_Remote(Plugin):
 
         if msg in ('R','r','C','c','T','t'):
 
+            print("calibrate")
             self.req.send_string(msg) #send through to pupil_remote
             recv = self.req.recv_string() #get bounce-back                
         
@@ -160,6 +169,7 @@ class Venlab_Remote(Plugin):
 
         elif msg == 'test':
 
+            print("venlab_remote: replying to test message")
             self.send_rply('comms', 'online')
                     
     def cleanup(self):

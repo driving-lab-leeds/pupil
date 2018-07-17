@@ -1,7 +1,3 @@
 {
-<<<<<<< HEAD
-    "python.pythonPath": "C:\\Program Files\\WorldViz\\Vizard5\\bin\\python.exe"
-=======
-    "python.pythonPath": "/usr/bin/python3"
->>>>>>> 2fcf335282c9523459e2b56c73da0415dd124025
+    "python.pythonPath": "/home/venlab/anaconda3/bin/python3"
 }
