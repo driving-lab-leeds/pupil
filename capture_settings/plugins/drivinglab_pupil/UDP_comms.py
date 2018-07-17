@@ -54,8 +54,14 @@ class pupil_comms:
             msg = input("Type a command ")
            
             if msg == 'q':
-
                 return
+
+            elif msg == 'poll':
+
+                messages = self.poll_msg()
+
+                print(messages)
+                
             self.send_msg(msg)
 
     def poll_msg(self):
@@ -101,11 +107,15 @@ def message_receiver(recv_IP, recv_PORT, output_pipe, SIZE = 1024):
 
 if __name__ == '__main__':
 
-    comms = pupil_comms()
+    #If networking
+    # comms = pupil_comms()
+
+    #If debugging on eyetrike
+    comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5015, SIZE = 1024)
 
     #Check the connection is live
     comms.send_msg('test')
-    time.sleep()
+    time.sleep(2)
     print(comms.poll_msg())
 
 

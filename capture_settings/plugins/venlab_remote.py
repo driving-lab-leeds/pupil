@@ -62,7 +62,12 @@ class Venlab_Remote(Plugin):
         self.order = .02  
 
 
-        self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
+        # self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
+        # self.recv_host = '192.168.0.2'
+
+        self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        self.recv_host = '0.0.0.0'
+
    
         self.connect_to_pupil_remote()
         self.start_eyetrike_server()
@@ -98,7 +103,7 @@ class Venlab_Remote(Plugin):
         #setup receive socket
         recv_PORT = 5000
         SIZE = 1024
-        recv_host = '192.168.0.2'
+        recv_host = self.recv_host
      
         self.recv_proxy = bh.Task_Proxy('Background', recv_socket_process, args=( recv_host, recv_PORT, SIZE))
 
