@@ -57,7 +57,7 @@ class pupil_comms:
            
             if msg == 'q':
 
-                self.recv_process.join(.1)
+                self.close_comms()
 
                 return
 
@@ -102,6 +102,14 @@ class pupil_comms:
         else:
 
             return False
+
+    def close_comms(self):
+        """Close the communications down.
+
+        Just joins the message thread"""
+
+        self.recv_process.join(.01)
+
   
 
 def message_receiver(recv_IP, recv_PORT, output_queue, SIZE = 1024):
