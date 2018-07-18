@@ -56,6 +56,9 @@ class pupil_comms:
             msg = input("Type a command ")
            
             if msg == 'q':
+
+                self.recv_process.join(.1)
+
                 return
 
             elif msg == 'poll':
