@@ -6,7 +6,7 @@ import time
 
 class pupil_comms:
 
-    def __init__(self, send_IP = '192.168.0.2', send_PORT = 5000, recv_IP = '192.168.0.1', recv_PORT = 5015, SIZE = 1024):
+    def __init__(self, send_IP = '192.168.0.2', send_PORT = 5000, recv_IP = '192.168.0.1', recv_PORT = 5020, SIZE = 1024):
         """
         When you create an instance it will set up all the connections and send a test signal to the Eyetrike machine.
         
@@ -89,11 +89,11 @@ class pupil_comms:
 
 
         #Check the connection is live
-        time.sleep(.2)
-        comms.send_msg('test')
-        time.sleep(.2)
+        time.sleep(2)
+        self.send_msg('test')
+        time.sleep(2)
 
-        msg_recv = comms.poll_msg()
+        msg_recv = self.poll_msg()
 
         if 'comms.online' in msg_recv:
 
@@ -137,10 +137,10 @@ def message_receiver(recv_IP, recv_PORT, output_queue, SIZE = 1024):
 if __name__ == '__main__':
 
     #If networking
-    # comms = pupil_comms()
+    comms = pupil_comms()
 
     #If debugging on eyetrike
-    comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5020, SIZE = 1024)
+#    comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5020, SIZE = 1024)
 
     #Check the connection is live
     connected = comms.check_connection()
