@@ -205,6 +205,13 @@ class Venlab_Remote(Plugin):
 
                 self.send_rply('calibration', msg)
 
+
+        elif notification['subject'] in ('calibration.marker_sample_completed'):
+            
+
+            self.send_rply('calibration', 'marker_sample_completed')
+
+
     def send_rply(self, subject, msg):
 
         out = '{}.{}'.format(subject, msg)
