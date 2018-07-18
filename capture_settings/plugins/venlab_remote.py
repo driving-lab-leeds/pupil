@@ -62,17 +62,19 @@ class Venlab_Remote(Plugin):
         self.order = .02  
 
 
-        # self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
-        # self.send_port = 5020
-
-        # self.recv_host = '192.168.0.2'
-        # self.recv_port = 5000
-
-        self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        #When running on network
+        self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
         self.send_port = 5020
 
-        self.recv_host = '0.0.0.0'
+        self.recv_host = '192.168.0.2'
         self.recv_port = 5000
+
+        #When debuggin on eyetrike
+        # self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        # self.send_port = 5020
+
+        # self.recv_host = '0.0.0.0'
+        # self.recv_port = 5000
 
    
         self.connect_to_pupil_remote()
@@ -202,6 +204,13 @@ class Venlab_Remote(Plugin):
                 msg = 'Accuracy.{}.Precision.{}'.format(self.accuracy, self.precision)
 
                 self.send_rply('calibration', msg)
+
+
+        elif notification['subject'] in ('calibration.marker_sample_completed'):
+            
+
+            self.send_rply('calibration', 'marker_sample_completed')
+
 
     def send_rply(self, subject, msg):
 
