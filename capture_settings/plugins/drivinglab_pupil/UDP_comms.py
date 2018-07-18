@@ -89,9 +89,9 @@ class pupil_comms:
 
 
         #Check the connection is live
-        time.sleep(2)
+        time.sleep(0.5)
         self.send_msg('test')
-        time.sleep(2)
+        time.sleep(0.5)
 
         msg_recv = self.poll_msg()
 
