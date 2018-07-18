@@ -62,17 +62,17 @@ class Venlab_Remote(Plugin):
         self.order = .02  
 
 
-        self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
-        self.send_port = 5020
-
-        self.recv_host = '192.168.0.2'
-        self.recv_port = 5000
-
-        # self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        # self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
         # self.send_port = 5020
 
-        # self.recv_host = '0.0.0.0'
+        # self.recv_host = '192.168.0.2'
         # self.recv_port = 5000
+
+        self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        self.send_port = 5020
+
+        self.recv_host = '0.0.0.0'
+        self.recv_port = 5000
 
    
         self.connect_to_pupil_remote()

@@ -1,5 +1,6 @@
 import socket as s
-import multiprocessing as mp
+import threading 
+import Queue
 import time
 
 
@@ -36,8 +37,9 @@ class pupil_comms:
 
     def start_recv_socket(self):
 
-        self.parent_conn, self.child_conn = mp.Pipe(False)
-        self.recv_process = mp.Process(target = message_receiver, args = (self.recv_IP, self.recv_PORT, self.child_conn, self.SIZE))
+        self.output_queue = Queue.Queue()
+
+        self.recv_process = threading.Thread(target = message_receiver, args = (self.recv_IP, self.recv_PORT, self.output_queue, self.SIZE))
         self.recv_process.daemon = True
 
         self.recv_process.start()
@@ -70,20 +72,36 @@ class pupil_comms:
     
         all_messages = []
 
-        while self.parent_conn.poll():
+        while not self.output_queue.empty():
        
-            all_messages.append(self.parent_conn.recv())
+            all_messages.append(self.output_queue.get())
 
            
        # print(all_messages)
 
         return all_messages
 
-        
+    def check_connection(self):
+        """Check that we have communication with eyetrike"""
 
+
+        #Check the connection is live
+        time.sleep(.2)
+        comms.send_msg('test')
+        time.sleep(.2)
+
+        msg_recv = comms.poll_msg()
+
+        if 'comms.online' in msg_recv:
+
+            return True
+        
+        else:
+
+            return False
   
 
-def message_receiver(recv_IP, recv_PORT, output_pipe, SIZE = 1024):
+def message_receiver(recv_IP, recv_PORT, output_queue, SIZE = 1024):
 
     """Recieve messages from a socket and flush the messages to a pipe"""
 
@@ -100,7 +118,7 @@ def message_receiver(recv_IP, recv_PORT, output_pipe, SIZE = 1024):
             #decode message
             msg = data.decode('utf-8')
 
-            output_pipe.send(msg)
+            output_queue.put(msg)
 		
 
 
@@ -111,17 +129,19 @@ if __name__ == '__main__':
     # comms = pupil_comms()
 
     #If debugging on eyetrike
-    comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5015, SIZE = 1024)
+    comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5020, SIZE = 1024)
 
     #Check the connection is live
-    comms.send_msg('test')
-    time.sleep(2)
-    print(comms.poll_msg())
+    connected = comms.check_connection()
 
+    if connected:
 
-    #Test in cosole
-    comms.send_message_from_console()
+        #Test in cosole
+        comms.send_message_from_console()
 
+    else:
+
+        raise Exception("Not connected to comms")
 
     print (comms.poll_msg())
 
