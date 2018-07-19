@@ -138,7 +138,7 @@ class Venlab_Remote(Plugin):
 
         if msg in ('R','r','C','c','T','t'):
 
-            print("calibrate")
+            print(msg)
             self.req.send_string(msg) #send through to pupil_remote
             recv = self.req.recv_string() #get bounce-back                
         
