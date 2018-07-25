@@ -128,11 +128,11 @@ class pupil_comms:
         
    
     def annotate(self, msg):
+        """Tell eyetrike to annotate file with msg"""
 
         label = "A" + msg
-
         self.send_msg(label)
-        
+
 
     def stop_trial(self):
         """Stop recording on eyetrike"""
