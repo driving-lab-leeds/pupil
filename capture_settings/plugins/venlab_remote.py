@@ -146,6 +146,27 @@ class Venlab_Remote(Plugin):
         
             self.send_rply('ipc', recv)
 
+        elif msg[0] == 'A':
+
+            ##annotation
+			label = msg[1:] #grab trialtype
+		
+
+			#fetch time
+			req.send_string('t') #send through to pupil_remote
+			recvtime = req.recv_string() #get bounce-back
+
+			notification = {'subject':'annotation','label':label,'timestamp':float(recvtime),'duration':5.0,'source':'eyetrike','record':True}
+			topic = 'notify.'+ notification['subject']
+			payload = msgpack.dumps(notification)
+			req.send_string(topic,flags=zmq.SNDMORE)
+			req.send(payload)
+			recv = req.recv_string()
+
+			self.send_rply('ipc', recv)
+
+
+
         elif msg == 'P':
 
             notification = {'subject': 'accuracy_test.should_start'}
