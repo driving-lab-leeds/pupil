@@ -110,6 +110,37 @@ class pupil_comms:
 
         self.recv_process.join(.01)
 
+    def reset_time(self):
+        """Reset the timer on eyetrike"""
+
+        self.send_msg('T 0.00')
+
+
+    def start_trial(self, fname):
+        """Start recording a new file on eyetrike"""
+
+        #reset time
+        print "reset timestamp"
+        self.reset_time()
+        
+        #start eyetracking recording
+        self.send_msg('R ' + fname)
+        
+   
+    def annotate(self, msg):
+
+        label = "A" + msg
+
+        self.send_msg(label)
+        
+
+    def stop_trial(self):
+        """Stop recording on eyetrike"""
+
+        self.send_msg('r')
+
+
+
   
 
 def message_receiver(recv_IP, recv_PORT, output_queue, SIZE = 1024):
@@ -138,6 +169,7 @@ if __name__ == '__main__':
 
     #If networking
     comms = pupil_comms()
+
 
     #If debugging on eyetrike
 #    comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5020, SIZE = 1024)
