@@ -136,9 +136,11 @@ class Venlab_Remote(Plugin):
 
     def forward_message(self, msg):
 
-        if msg in ('R','r','C','c','T','t'):
+        accepted_commands = ('R','r','C','c','T','t')
 
-            print(msg)
+        if msg[0] in accepted_commands:
+
+         
             self.req.send_string(msg) #send through to pupil_remote
             recv = self.req.recv_string() #get bounce-back                
         
@@ -169,7 +171,7 @@ class Venlab_Remote(Plugin):
 
             self.send_rply('ipc', recv)
 
-        elif msg == 'test':
+        elif msg == '__test':
 
             print("venlab_remote: replying to test message")
             self.send_rply('comms', 'online')
