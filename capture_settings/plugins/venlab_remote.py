@@ -140,7 +140,6 @@ class Venlab_Remote(Plugin):
 
         if msg[0] in accepted_commands:
 
-         
             self.req.send_string(msg) #send through to pupil_remote
             recv = self.req.recv_string() #get bounce-back                
         
