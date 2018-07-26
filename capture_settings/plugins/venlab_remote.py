@@ -220,9 +220,9 @@ class Venlab_Remote(Plugin):
             self.recent_input = notification['pupil_list']
             self.recent_labels = notification['ref_list']
 
+            #Get surface data (optionally used to get normalised position data)
             self.recent_surfaces = notification['surface_list']
 
-            print(self.recent_surfaces)
 
 
             if self.recent_input and self.recent_labels:
@@ -236,6 +236,7 @@ class Venlab_Remote(Plugin):
 
         elif notification['subject'] in ('calibration.marker_sample_completed'):
             
+            #Here i should recprd the timestep when these happen so we know which marker has just finished
 
             self.send_rply('calibration', 'marker_sample_completed')
 
@@ -264,6 +265,7 @@ class Venlab_Remote(Plugin):
         # reuse closest_matches_monocular to correlate one label to each prediction
         # correlated['ref']: prediction, correlated['pupil']: label location
         correlated = closest_matches_monocular(gaze_pos, ref_pos)
+        
         # [[pred.x, pred.y, label.x, label.y], ...], shape: n x 4
         locations = np.array([(*e['ref']['norm_pos'], *e['pupil']['norm_pos']) for e in correlated])
         error_lines = locations.copy()  # n x 4
