@@ -18,9 +18,11 @@ from . natural_features_calibration import Natural_Features_Calibration
 from . hmd_calibration import HMD_Calibration, HMD_Calibration_3D
 from . gaze_mappers import Gaze_Mapping_Plugin, Dummy_Gaze_Mapper, Monocular_Gaze_Mapper, Binocular_Gaze_Mapper, Vector_Gaze_Mapper, Binocular_Vector_Gaze_Mapper, Dual_Monocular_Gaze_Mapper
 from . calibration_plugin_base import Calibration_Plugin
+from . venlab_marker_calibration import Venlab_Marker_Calibration #Oscars calibration module
 
 calibration_plugins = [Screen_Marker_Calibration,
                        Manual_Marker_Calibration,
+                       Venlab_Marker_Calibration,
                        Fingertip_Calibration,
                        Single_Marker_Calibration,
                        Natural_Features_Calibration,

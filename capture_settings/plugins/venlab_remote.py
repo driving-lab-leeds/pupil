@@ -59,7 +59,7 @@ class Venlab_Remote(Plugin):
 
     def __init__(self, g_pool):
         super().__init__(g_pool)
-        self.order = .02  
+        self.order = .3
 
 
         #When running on network
@@ -127,13 +127,30 @@ class Venlab_Remote(Plugin):
 
 
     def recent_events(self, events):
-        
-        for msg in self.recv_proxy.fetch():
-            
+
+      
+        for msg in self.recv_proxy.fetch():            
           
             self.forward_message(msg)
 
 
+        # surfaces = events.get('surfaces')
+
+        # if not surfaces:
+
+        #     return
+        
+        # else:
+
+        #     for s in surfaces:
+
+        #         output = s['gaze_on_srf']
+
+        #         for o in output:
+        #             print(o['norm_pos'], o['timestamp'])
+         
+        #     raise Exception
+       
     def forward_message(self, msg):
 
         accepted_commands = ('R','r','C','c','T','t')
