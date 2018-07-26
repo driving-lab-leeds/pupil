@@ -8,6 +8,7 @@ Lesser General Public License (LGPL v3.0).
 See COPYING and COPYING.LESSER for license details.
 ---------------------------------------------------------------------------~(*)
 '''
+import pickle
 
 import cv2
 import numpy as np
@@ -72,6 +73,11 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
         self.smooth_pos = 0.,0.
         # self.close_window()
         self.button.status_text = ''
+
+        pickle.dump(self.pupil_list, open('pupil_list.pkl', 'wb'))
+        pickle.dump(self.ref_list, open('ref_list.pkl', 'wb'))
+        pickle.dump(self.surface_list, open('surface_list.pkl', 'wb'))
+
         if self.mode == 'calibration':
             finish_calibration(self.g_pool, self.pupil_list, self.ref_list)
         elif self.mode == 'accuracy_test':
@@ -133,7 +139,7 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
                 logger.warning("{} markers detected. Please remove all the other markers".format(len(self.markers)))
 
             # tracking logic (OG: only sample if surfaces found)
-            if len(self.markers) and not self.stop_marker_found and surfaces:
+            if len(self.markers) and (not self.stop_marker_found) and surfaces:
                 # start counter if ref is resting in place and not at last sample site
                 # calculate smoothed manhattan velocity
                 smoother = 0.3

@@ -237,7 +237,10 @@ class Venlab_Remote(Plugin):
             self.recent_input = notification['pupil_list']
             self.recent_labels = notification['ref_list']
 
+            self.recent_surfaces = notification['surface_list']
+
             if self.recent_input and self.recent_labels:
+
                 self.recalculate()
 
                 msg = 'Accuracy.{}.Precision.{}'.format(self.accuracy, self.precision)
