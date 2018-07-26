@@ -79,9 +79,9 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
         pickle.dump(self.surface_list, open('surface_list.pkl', 'wb'))
 
         if self.mode == 'calibration':
-            finish_calibration(self.g_pool, self.pupil_list, self.ref_list)
+            finish_calibration(self.g_pool, self.pupil_list, self.ref_list, self.surface_list)
         elif self.mode == 'accuracy_test':
-            self.finish_accuracy_test(self.pupil_list, self.ref_list)
+            self.finish_accuracy_test(self.pupil_list, self.ref_list, self.surface_list)
         super().stop()
 
     def on_notify(self, notification):

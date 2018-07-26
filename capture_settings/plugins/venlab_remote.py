@@ -133,23 +133,6 @@ class Venlab_Remote(Plugin):
           
             self.forward_message(msg)
 
-
-        # surfaces = events.get('surfaces')
-
-        # if not surfaces:
-
-        #     return
-        
-        # else:
-
-        #     for s in surfaces:
-
-        #         output = s['gaze_on_srf']
-
-        #         for o in output:
-        #             print(o['norm_pos'], o['timestamp'])
-         
-        #     raise Exception
        
     def forward_message(self, msg):
 
@@ -238,6 +221,9 @@ class Venlab_Remote(Plugin):
             self.recent_labels = notification['ref_list']
 
             self.recent_surfaces = notification['surface_list']
+
+            print(self.recent_surfaces)
+
 
             if self.recent_input and self.recent_labels:
 

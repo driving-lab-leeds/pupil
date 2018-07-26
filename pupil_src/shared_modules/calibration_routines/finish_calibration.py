@@ -348,7 +348,7 @@ def select_calibration_method(g_pool, pupil_list, ref_list):
                           'timestamp': g_pool.get_timestamp(), 'record': True}
 
 
-def finish_calibration(g_pool, pupil_list, ref_list):
+def finish_calibration(g_pool, pupil_list, ref_list, surface_list = None):
     method, result = select_calibration_method(g_pool, pupil_list, ref_list)
     g_pool.active_calibration_plugin.notify_all(result)
     if result['subject'] != 'calibration.failed':
@@ -362,6 +362,7 @@ def finish_calibration(g_pool, pupil_list, ref_list):
                                                      'timestamp': ts,
                                                      'pupil_list': pupil_list,
                                                      'ref_list': ref_list,
+                                                     'surface_list': surface_list,
                                                      'calibration_method': method,
                                                      'record': True})
 

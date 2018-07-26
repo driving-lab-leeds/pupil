@@ -146,8 +146,8 @@ class Calibration_Plugin(Plugin):
 
         self.notify_all({'subject': '{}.stopped'.format(self.mode)})
 
-    def finish_accuracy_test(self, pupil_list, ref_list):
+    def finish_accuracy_test(self, pupil_list, ref_list, surface_list = None):
         ts = self.g_pool.get_timestamp()
         self.notify_all({'subject': 'start_plugin', 'name': 'Accuracy_Visualizer'})
         self.notify_all({'subject': 'accuracy_test.data', 'timestamp': ts,
-                         'pupil_list': pupil_list, 'ref_list': ref_list, 'record': True})
+                         'pupil_list': pupil_list, 'ref_list': ref_list, 'surface_list': surface_list, 'record': True})
