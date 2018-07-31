@@ -8,8 +8,6 @@ Lesser General Public License (LGPL v3.0).
 See COPYING and COPYING.LESSER for license details.
 ---------------------------------------------------------------------------~(*)
 '''
-import pickle
-
 import cv2
 import numpy as np
 from pyglui.cygl.utils import draw_points_norm, draw_polyline, RGBA
@@ -74,9 +72,7 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
         # self.close_window()
         self.button.status_text = ''
 
-        pickle.dump(self.pupil_list, open('pupil_list.pkl', 'wb'))
-        pickle.dump(self.ref_list, open('ref_list.pkl', 'wb'))
-        pickle.dump(self.surface_list, open('surface_list.pkl', 'wb'))
+        
 
         if self.mode == 'calibration':
             finish_calibration(self.g_pool, self.pupil_list, self.ref_list, self.surface_list)

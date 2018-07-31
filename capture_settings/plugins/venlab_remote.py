@@ -9,6 +9,8 @@ See COPYING and COPYING.LESSER for license details.
 ---------------------------------------------------------------------------~(*)
 '''
 
+import pickle 
+
 from time import sleep
 import socket
 import audio
@@ -195,6 +197,10 @@ class Venlab_Remote(Plugin):
 
             print("venlab_remote: replying to test message")
             self.send_rply('comms', 'online')
+
+        
+
+        
                     
     def cleanup(self):
         """gets called when the plugin get terminated.
@@ -223,7 +229,7 @@ class Venlab_Remote(Plugin):
             #Get surface data (optionally used to get normalised position data)
             self.recent_surfaces = notification['surface_list']
 
-
+            pickle.dump(self.recent_surfaces, open('surface_list.pkl', 'wb'))
 
             if self.recent_input and self.recent_labels:
 

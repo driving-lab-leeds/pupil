@@ -168,11 +168,11 @@ def message_receiver(recv_IP, recv_PORT, output_queue, SIZE = 1024):
 if __name__ == '__main__':
 
     #If networking
-    comms = pupil_comms()
+    # comms = pupil_comms()
 
 
     #If debugging on eyetrike
-#    comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5020, SIZE = 1024)
+    comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5020, SIZE = 1024)
 
     #Check the connection is live
     connected = comms.check_connection()
