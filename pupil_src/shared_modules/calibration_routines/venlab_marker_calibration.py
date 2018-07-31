@@ -187,7 +187,7 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
             self.pupil_list.extend(events['pupil_positions'])
 
 
-            if surfaces:
+            if surfaces:                
                 
                 self.surface_list.extend([s['gaze_on_srf'] for s in surfaces])
        
