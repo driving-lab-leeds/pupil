@@ -10,8 +10,7 @@ See COPYING and COPYING.LESSER for license details.
 '''
 
 import pickle 
-import struct
-
+import numpy as np
 from time import sleep
 import socket
 import audio
@@ -31,32 +30,6 @@ from calibration_routines.calibrate import closest_matches_monocular
 from collections import namedtuple
 Calculation_Result = namedtuple('Calculation_Result', ['result', 'num_used', 'num_total'])
 
-def send_msg(sock, addr, msg):
-    # Prefix each message with a 4-byte length (network byte order)
-    msg = struct.pack('>L', len(msg)) + msg
-    sock.sendto(msg.encode(), addr)
-    # sock.sendall(msg)
-
-def recv_msg(sock):
-    # Read message length and unpack it into an integer
-    raw_msglen = recvall(sock, 4)
-    if not raw_msglen:
-        return None
-    msglen = struct.unpack('>I', raw_msglen)[0]
-    # Read the message data
-    return recvall(sock, msglen)
-
-def recvall(sock, n):
-    # Helper function to recv n bytes or return None if EOF is hit
-    data = b''
-    while len(data) < n:
-       
-        packet, addr = sock.recvfrom(n - len(data))
-        if not packet:
-            return None
-        data += packet
-    return data
-
 
 
 
@@ -73,9 +46,9 @@ def recv_socket_process(host, PORT, SIZE):
 
     while True:
 
-        data = recv_msg(recv_sock)
-        print(data)
-        # data, addr = recv_sock.recvfrom(SIZE)
+        # data = recv_msg(recv_sock)
+        # print(data)
+        data, addr = recv_sock.recvfrom(SIZE)
 
         if data: 
             #decode message
@@ -171,6 +144,7 @@ class Venlab_Remote(Plugin):
        
     def forward_message(self, msg):
 
+     
         accepted_commands = ('R','r','C','c','T','t')
 
         if msg[0] in accepted_commands:
@@ -231,6 +205,14 @@ class Venlab_Remote(Plugin):
             print("venlab_remote: replying to test message")
             self.send_rply('comms', 'online')
 
+        elif msg[:8] == 'markers:':
+
+            test_markers = msg[8:]
+
+            test_markers = [float(i) for i in test_markers.split("__")]
+
+            self.test_markers = np.array(test_markers).reshape(len(test_markers)//2, 2)
+       
         
 
         
@@ -262,7 +244,12 @@ class Venlab_Remote(Plugin):
             #Get surface data (optionally used to get normalised position data)
             self.recent_surfaces = notification['surface_list']
 
-            pickle.dump(self.recent_surfaces, open('surface_list.pkl', 'wb'))
+            if (self.recent_surfaces) and (self.test_markers):
+
+                logger.info("Running pixel accuracy test")
+
+                pickle.dump(self.recent_surfaces, open('surface_list.pkl', 'wb'))
+                pickle.dump(self.test_markers, open('test_markers.pkl', 'wb'))
 
             if self.recent_input and self.recent_labels:
 
@@ -284,8 +271,8 @@ class Venlab_Remote(Plugin):
 
         out = '{}.{}'.format(subject, msg)
 
-        send_msg(self.send_sock, self.send_addr, out.encode())
-        # self.send_sock.sendto(out.encode(), self.send_addr)
+        # send_msg(self.send_sock, self.send_addr, out.encode())
+        self.send_sock.sendto(out.encode(), self.send_addr)
 
 
     def recalculate(self):
