@@ -2,6 +2,36 @@ import socket as s
 import threading 
 import Queue
 import time
+import struct 
+
+def send_msg(sock, addr, msg):
+    # Prefix each message with a 4-byte length (network byte order)
+    msg = struct.pack('>L', len(msg)) + msg
+    sock.sendto(msg.encode(), addr)
+
+    print(msg)
+    # sock.sendall(msg)
+
+def recv_msg(sock):
+    # Read message length and unpack it into an integer
+    raw_msglen = recvall(sock, 4)
+    if not raw_msglen:
+        return None
+    msglen = struct.unpack('>I', raw_msglen)[0]
+    # Read the message data
+    return recvall(sock, msglen)
+
+def recvall(sock, n):
+    # Helper function to recv n bytes or return None if EOF is hit
+    data = b''
+    while len(data) < n:
+       
+        packet, addr = sock.recvfrom(n - len(data))
+        if not packet:
+            return None
+        data += packet
+    return data
+
 
 
 class pupil_comms:
@@ -46,7 +76,8 @@ class pupil_comms:
         
     def send_msg(self, msg):
 
-        self.send_sock.sendto(msg.encode(), self.send_addr)
+        send_msg(self.send_sock, self.send_addr, msg.encode()) #Send the message using send protocol
+        # self.send_sock.sendto(msg.encode(), self.send_addr)
 
     def send_message_from_console(self):
         """Type messages over the console. 
@@ -154,7 +185,9 @@ def message_receiver(recv_IP, recv_PORT, output_queue, SIZE = 1024):
     recv_sock.setsockopt(s.SOL_SOCKET,s.SO_REUSEADDR,1)
 
     while True:
-        data, addr = recv_sock.recvfrom(SIZE)
+
+        data = recv_msg(recv_sock)
+        # data, addr = recv_sock.recvfrom(SIZE)
 
         if data: 
             #decode message

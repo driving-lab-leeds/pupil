@@ -10,6 +10,7 @@ See COPYING and COPYING.LESSER for license details.
 '''
 
 import pickle 
+import struct
 
 from time import sleep
 import socket
@@ -30,6 +31,36 @@ from calibration_routines.calibrate import closest_matches_monocular
 from collections import namedtuple
 Calculation_Result = namedtuple('Calculation_Result', ['result', 'num_used', 'num_total'])
 
+def send_msg(sock, addr, msg):
+    # Prefix each message with a 4-byte length (network byte order)
+    msg = struct.pack('>L', len(msg)) + msg
+    sock.sendto(msg.encode(), addr)
+    # sock.sendall(msg)
+
+def recv_msg(sock):
+    # Read message length and unpack it into an integer
+    raw_msglen = recvall(sock, 4)
+    if not raw_msglen:
+        return None
+    msglen = struct.unpack('>I', raw_msglen)[0]
+    # Read the message data
+    return recvall(sock, msglen)
+
+def recvall(sock, n):
+    # Helper function to recv n bytes or return None if EOF is hit
+    data = b''
+    while len(data) < n:
+       
+        packet, addr = sock.recvfrom(n - len(data))
+        if not packet:
+            return None
+        data += packet
+    return data
+
+
+
+
+
 
 def recv_socket_process(host, PORT, SIZE):
 
@@ -42,7 +73,9 @@ def recv_socket_process(host, PORT, SIZE):
 
     while True:
 
-        data, addr = recv_sock.recvfrom(SIZE)
+        data = recv_msg(recv_sock)
+        print(data)
+        # data, addr = recv_sock.recvfrom(SIZE)
 
         if data: 
             #decode message
@@ -65,18 +98,18 @@ class Venlab_Remote(Plugin):
 
 
         #When running on network
-        self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
-        self.send_port = 5020
-
-        self.recv_host = '192.168.0.2'
-        self.recv_port = 5000
-
-        #When debuggin on eyetrike
-        # self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        # self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
         # self.send_port = 5020
 
-        # self.recv_host = '0.0.0.0'
+        # self.recv_host = '192.168.0.2'
         # self.recv_port = 5000
+
+        #When debuggin on eyetrike
+        self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        self.send_port = 5020
+
+        self.recv_host = '0.0.0.0'
+        self.recv_port = 5000
 
    
         self.connect_to_pupil_remote()
@@ -250,7 +283,9 @@ class Venlab_Remote(Plugin):
     def send_rply(self, subject, msg):
 
         out = '{}.{}'.format(subject, msg)
-        self.send_sock.sendto(out.encode(), self.send_addr)
+
+        send_msg(self.send_sock, self.send_addr, out.encode())
+        # self.send_sock.sendto(out.encode(), self.send_addr)
 
 
     def recalculate(self):
