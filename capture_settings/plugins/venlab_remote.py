@@ -10,7 +10,7 @@ See COPYING and COPYING.LESSER for license details.
 '''
 
 import pickle 
-
+import numpy as np
 from time import sleep
 import socket
 import audio
@@ -64,19 +64,19 @@ class Venlab_Remote(Plugin):
         self.order = .3
 
 
-        #When running on network
-        self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
-        self.send_port = 5020
-
-        self.recv_host = '192.168.0.2'
-        self.recv_port = 5000
-
-        #When debuggin on eyetrike
-        # self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        # #When running on network
+        # self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
         # self.send_port = 5020
 
-        # self.recv_host = '0.0.0.0'
+        # self.recv_host = '192.168.0.2'
         # self.recv_port = 5000
+
+        #When debuggin on eyetrike
+        self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        self.send_port = 5020
+
+        self.recv_host = '0.0.0.0'
+        self.recv_port = 5000
 
    
         self.connect_to_pupil_remote()
@@ -138,6 +138,7 @@ class Venlab_Remote(Plugin):
        
     def forward_message(self, msg):
 
+     
         accepted_commands = ('R','r','C','c','T','t')
 
         if msg[0] in accepted_commands:
@@ -198,6 +199,14 @@ class Venlab_Remote(Plugin):
             print("venlab_remote: replying to test message")
             self.send_rply('comms', 'online')
 
+        elif msg[:8] == 'markers:':
+
+            test_markers = msg[8:]
+
+            test_markers = [float(i) for i in test_markers.split("__")]
+
+            self.test_markers = np.array(test_markers).reshape(len(test_markers)//2, 2)
+       
         
 
         
@@ -229,7 +238,12 @@ class Venlab_Remote(Plugin):
             #Get surface data (optionally used to get normalised position data)
             self.recent_surfaces = notification['surface_list']
 
-            pickle.dump(self.recent_surfaces, open('surface_list.pkl', 'wb'))
+            if (self.recent_surfaces) and (self.test_markers):
+
+                logger.info("Running pixel accuracy test")
+
+                pickle.dump(self.recent_surfaces, open('surface_list.pkl', 'wb'))
+                pickle.dump(self.test_markers, open('test_markers.pkl', 'wb'))
 
             if self.recent_input and self.recent_labels:
 
