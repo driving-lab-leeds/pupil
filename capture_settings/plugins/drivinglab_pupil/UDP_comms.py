@@ -4,6 +4,8 @@ import Queue
 import time
 
 
+
+
 class pupil_comms:
 
     def __init__(self, send_IP = '192.168.0.2', send_PORT = 5000, recv_IP = '192.168.0.1', recv_PORT = 5020, SIZE = 1024):
@@ -139,9 +141,16 @@ class pupil_comms:
 
         self.send_msg('r')
 
+    def send_marker_positions(self, markers):        
+        """Pass a list of markers (each markers are a list size 2) and send them to venlab remote"""
 
+        message = '__'.join([str(item) for sublist in markers for item in sublist])
 
-  
+        message = 'markers:' + message
+
+        self.send_msg(message)
+
+ 
 
 def message_receiver(recv_IP, recv_PORT, output_queue, SIZE = 1024):
 
@@ -170,7 +179,7 @@ if __name__ == '__main__':
     #If networking
     # comms = pupil_comms()
 
-
+    test_markers = [[5, 2], [6,20], [9,3]]
     #If debugging on eyetrike
     comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5020, SIZE = 1024)
 
@@ -178,6 +187,8 @@ if __name__ == '__main__':
     connected = comms.check_connection()
 
     if connected:
+
+        comms.send_marker_positions(test_markers)
 
         #Test in cosole
         comms.send_message_from_console()
