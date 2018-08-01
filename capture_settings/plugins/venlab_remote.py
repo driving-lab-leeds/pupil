@@ -71,18 +71,18 @@ class Venlab_Remote(Plugin):
 
 
         #When running on network
-        # self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
-        # self.send_port = 5020
-
-        # self.recv_host = '192.168.0.2'
-        # self.recv_port = 5000
-
-        #When debuggin on eyetrike
-        self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        self.send_IP = '192.168.0.1' #IP of machine you want to send messages to 
         self.send_port = 5020
 
-        self.recv_host = '0.0.0.0'
+        self.recv_host = '192.168.0.2'
         self.recv_port = 5000
+
+        #When debuggin on eyetrike
+        # self.send_IP = '0.0.0.0' #IP of machine you want to send messages to 
+        # self.send_port = 5020
+
+        # self.recv_host = '0.0.0.0'
+        # self.recv_port = 5000
 
    
         self.connect_to_pupil_remote()
@@ -95,6 +95,7 @@ class Venlab_Remote(Plugin):
         self.error_lines = None
         self.recent_input = None
         self.recent_labels = None
+        self.test_markers = None
 
         # .5 degrees, used to remove outliers from precision calculation
         self.succession_threshold = np.cos(np.deg2rad(.5))
@@ -145,6 +146,7 @@ class Venlab_Remote(Plugin):
     def forward_message(self, msg):
 
      
+        print(msg)
         accepted_commands = ('R','r','C','c','T','t')
 
         if msg[0] in accepted_commands:
@@ -244,12 +246,15 @@ class Venlab_Remote(Plugin):
             #Get surface data (optionally used to get normalised position data)
             self.recent_surfaces = notification['surface_list']
 
-            if (self.recent_surfaces) and (self.test_markers):
+            if (self.recent_surfaces) and (self.test_markers is not None):
 
                 logger.info("Running pixel accuracy test")
 
                 pickle.dump(self.recent_surfaces, open('surface_list.pkl', 'wb'))
                 pickle.dump(self.test_markers, open('test_markers.pkl', 'wb'))
+
+                pickle.dump(self.recent_input, open('recent_input.pkl', 'wb'))
+                pickle.dump(self.recent_labels, open('recent_labels.pkl', 'wb'))
 
             if self.recent_input and self.recent_labels:
 
