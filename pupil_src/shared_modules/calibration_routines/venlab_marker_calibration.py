@@ -63,6 +63,8 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
         self.pupil_list = []
         self.surface_list = []
 
+        self.marker_times = [] #The time at which a new marker is on screen (starting for change to second marker)
+
     def stop(self):
         audio.say("Stopping  {}".format(self.mode_pretty))
         logger.info('Stopping  {}'.format(self.mode_pretty))
@@ -75,9 +77,9 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
         
 
         if self.mode == 'calibration':
-            finish_calibration(self.g_pool, self.pupil_list, self.ref_list, self.surface_list)
+            finish_calibration(self.g_pool, self.pupil_list, self.ref_list, self.surface_list, self.marker_times)
         elif self.mode == 'accuracy_test':
-            self.finish_accuracy_test(self.pupil_list, self.ref_list, self.surface_list)
+            self.finish_accuracy_test(self.pupil_list, self.ref_list, self.surface_list, self.marker_times)
         super().stop()
 
     def on_notify(self, notification):
@@ -157,6 +159,7 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
                 if self.counter <= 0:
                     if self.smooth_vel < 0.01 and sample_ref_dist > 0.1:
                         self.sample_site = self.smooth_pos
+                        self.marker_times.append(frame.timestamp)
                         audio.beep()
                         logger.debug("Steady marker found. Starting to sample {} datapoints".format(self.counter_max))
                         self.notify_all({'subject':'calibration.marker_found','timestamp':self.g_pool.get_timestamp(),'record':True})
@@ -174,14 +177,19 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
                         ref["norm_pos"] = self.pos
                         ref["screen_pos"] = marker_pos
                         ref["timestamp"] = frame.timestamp
+                        
                         self.ref_list.append(ref)
                         if events.get('fixations', []):
                             self.counter -= 5
-                        if self.counter <= 0:
+                        if self.counter <= 0:                           
+
+                            
                             #last sample before counter done and moving on
                             audio.tink()
                             logger.debug("Sampled {} datapoints. Stopping to sample. Looking for steady marker again.".format(self.counter_max))
                             self.notify_all({'subject':'calibration.marker_sample_completed','timestamp':self.g_pool.get_timestamp(),'record':True})
+
+                            
 
             # Always save pupil positions
             self.pupil_list.extend(events['pupil_positions'])

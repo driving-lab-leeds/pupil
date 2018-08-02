@@ -245,6 +245,7 @@ class Venlab_Remote(Plugin):
 
             #Get surface data (optionally used to get normalised position data)
             self.recent_surfaces = notification['surface_list']
+            self.marker_times = notification['marker_times']
 
             if (self.recent_surfaces) and (self.test_markers is not None):
 
@@ -255,6 +256,8 @@ class Venlab_Remote(Plugin):
 
                 pickle.dump(self.recent_input, open('recent_input.pkl', 'wb'))
                 pickle.dump(self.recent_labels, open('recent_labels.pkl', 'wb'))
+
+                pickle.dump(self.marker_times, open('marker_times.pkl', 'wb'))
 
             if self.recent_input and self.recent_labels:
 
