@@ -2,6 +2,9 @@ import pickle
 import os
 import numpy as np
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 def closest_matches_monocular(ref_pts, pupil_pts, max_dispersion=1/15.):
     '''
     get pupil positions closest in time to ref points.
@@ -115,45 +118,39 @@ marker_times = np.array(pickle.load(open('marker_times.pkl', 'rb')))
 #Make surface list one list
 surface_list = [i for s in surface_list for i in s ]
 
-#use recent input and recent_labels (ref pos)
-matched = closest_matches_monocular(recent_input, recent_labels)#
-
-
 
 #use recent input and recent_labels (ref pos)
 matched_surf = closest_matches_monocular_surface(recent_input, recent_labels, surface_list)#
 
 matched_surf_tf = np.array([s['ref']['timestamp'] for s in matched_surf])
 
-
 marker_at_time = get_marker_index(matched_surf_tf, marker_times)
 
 
+plt.figure()
+ax = plt.gca()
+colors = sns.color_palette("Set1", 12)
+ax.set_xlim([0, 1])
+ax.set_ylim([0, 1])
+
+
+all_avg_errors = np.empty(np.array(test_markers.shape))
+all_std_errors = np.empty(np.array(test_markers.shape))
 for i in range(len(test_markers)):
     m0 = np.array(matched_surf)[marker_at_time == i].tolist()
 
     norm_pos = [m['surface']['norm_pos'] for m in m0]
 
+    ax.scatter(np.array(norm_pos)[:,0], np.array(norm_pos)[:,1], color = colors[i])
+
     error = (np.array(norm_pos) - test_markers[0])
 
-    print(error.mean(0))
+    all_avg_errors[i] = error.mean(0)
+    all_std_errors[i] = error.std(0)
 
-# [ 0.02223096 -0.09581757]
-# [0.36504281 0.86058796]
-# [ 0.525943   -0.04125193]
-# [ 0.7160603  -0.04941413]
-# [ 0.02084138 -0.32280151]
-# [ 0.26827681 -0.32558271]
-# [ 0.52576257 -0.3334589 ]
-# [ 0.71733848 -0.33814626]
-# [ 0.02499752 -0.62702349]
-# [ 0.26846742 -0.64378789]
-# [ 0.52300119 -0.62390594]
-# [ 0.75235428 -0.59637357]
+plt.plot(np.array(test_markers)[:,0], np.array(test_markers)[:,1], 'ko', ms =10)
+plt.legend()
 
-#TO DO:
-
-# 1) Get the position they are looking at in normalised coordiantes corrolated with the recent inputs
-# 2) Then figure out which marker they are looking at
+plt.show()
 # 3) Then perform accuracy test with whichever marker position they are looking at
 
