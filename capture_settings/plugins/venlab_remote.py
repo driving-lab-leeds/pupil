@@ -30,7 +30,7 @@ from calibration_routines.calibrate import closest_matches_monocular
 from collections import namedtuple
 Calculation_Result = namedtuple('Calculation_Result', ['result', 'num_used', 'num_total'])
 
-
+# import matplotlib.pyplot as plt
 
 
 
@@ -99,7 +99,7 @@ class Venlab_Remote(Plugin):
 
         # .5 degrees, used to remove outliers from precision calculation
         self.succession_threshold = np.cos(np.deg2rad(.5))
-        self._outlier_threshold = .5  # in degrees
+        self._outlier_threshold = 5.0  # in degrees
 
     @property
     def outlier_threshold(self):
@@ -215,17 +215,13 @@ class Venlab_Remote(Plugin):
 
             self.test_markers = np.array(test_markers).reshape(len(test_markers)//2, 2)
        
-        
-
-        
-                    
+                        
     def cleanup(self):
         """gets called when the plugin get terminated.
            This happens either voluntarily or forced.
         """
         
-        self.send_sock.close()
-                   
+        self.send_sock.close()                   
 
     def on_notify(self, notification):
         """send simple string messages to control application functions.
@@ -251,19 +247,25 @@ class Venlab_Remote(Plugin):
 
                 logger.info("Running pixel accuracy test")
 
-                pickle.dump(self.recent_surfaces, open('surface_list.pkl', 'wb'))
-                pickle.dump(self.test_markers, open('test_markers.pkl', 'wb'))
+                # all_av_error, all_sd_error = self.get_pixel_accuracy(self.recent_surfaces, self.test_markers, self.recent_input, self.recent_labels, self.marker_times)
 
-                pickle.dump(self.recent_input, open('recent_input.pkl', 'wb'))
-                pickle.dump(self.recent_labels, open('recent_labels.pkl', 'wb'))
+                # pickle.dump([all_av_error, all_sd_error], open('calib_data.pkl', 'wb'))
+                # pickle.dump(self.test_markers, open('test_markers.pkl', 'wb'))
 
-                pickle.dump(self.marker_times, open('marker_times.pkl', 'wb'))
+                # pickle.dump(self.recent_surfaces, open('surface_list.pkl', 'wb'))
+                # pickle.dump(self.test_markers, open('test_markers.pkl', 'wb'))
+
+                # pickle.dump(self.recent_input, open('recent_input.pkl', 'wb'))
+                # pickle.dump(self.recent_labels, open('recent_labels.pkl', 'wb'))
+
+                # pickle.dump(self.marker_times, open('marker_times.pkl', 'wb'))
 
             if self.recent_input and self.recent_labels:
 
                 self.recalculate()
 
-                msg = 'Accuracy.{}.Precision.{}'.format(self.accuracy, self.precision)
+             
+                msg = '{}//{}'.format(self.accuracy, self.precision)
 
                 self.send_rply('calibration', msg)
 
@@ -273,6 +275,9 @@ class Venlab_Remote(Plugin):
             #Here i should recprd the timestep when these happen so we know which marker has just finished
 
             self.send_rply('calibration', 'marker_sample_completed')
+
+    
+
 
 
     def send_rply(self, subject, msg):
@@ -285,14 +290,16 @@ class Venlab_Remote(Plugin):
 
     def recalculate(self):
         assert self.recent_input and self.recent_labels
+
+       
         prediction = self.g_pool.active_gaze_mapping_plugin.map_batch(self.recent_input)
         results = self.calc_acc_prec_errlines(prediction, self.recent_labels,
                                               self.g_pool.capture.intrinsics)
-     
+        
+   
         self.accuracy = results[0].result
         self.precision = results[1].result
         self.error_lines = results[2]
-
      
 
     def calc_acc_prec_errlines(self, gaze_pos, ref_pos, intrinsics):
@@ -351,3 +358,117 @@ class Venlab_Remote(Plugin):
         precision_result = Calculation_Result(precision, num_used, num_total)
 
         return accuracy_result, precision_result, error_lines
+
+
+    def closest_matches_monocular_surface(self, ref_pts, pupil_pts, surfaces, max_dispersion=1/15.):
+        '''
+        get pupil positions closest in time to ref points.
+        return list of dict with matching ref and pupil datum.
+
+        if your data is binocular use:
+        pupil0 = [p for p in pupil_pts if p['id']==0]
+        pupil1 = [p for p in pupil_pts if p['id']==1]
+        to get the desired eye and pass it as pupil_pts
+        '''
+
+        ref = ref_pts
+        pupil0 = pupil_pts
+        pupil0_ts = np.array([p['timestamp'] for p in pupil0])
+
+        #surface timestamp
+        surface_ts = np.array([s['timestamp'] for s in surfaces])
+
+        def find_nearest_idx(array,value):
+            idx = np.searchsorted(array, value, side="left")
+            try:
+                if abs(value - array[idx-1]) < abs(value - array[idx]):
+                    return idx-1
+                else:
+                    return idx
+            except IndexError:
+                return idx-1
+
+        matched = []
+        if pupil0:
+            for r in ref_pts:
+                closest_p0_idx = find_nearest_idx(pupil0_ts,r['timestamp'])
+                closest_p0 = pupil0[closest_p0_idx]
+                dispersion = max(closest_p0['timestamp'],r['timestamp']) - min(closest_p0['timestamp'],r['timestamp'])
+
+                #Do the same for surfaces
+                closest_s_idx = find_nearest_idx(surface_ts, r['timestamp'])
+                closest_s = surfaces[closest_s_idx]
+                surf_dispersion = max(closest_s['timestamp'],r['timestamp']) - min(closest_s['timestamp'],r['timestamp'])
+
+                if (dispersion < max_dispersion) and (surf_dispersion < max_dispersion):
+                    matched.append({'ref':r,'pupil':closest_p0, 'surface': closest_s})
+                else:
+                    pass
+        return matched
+
+    def get_marker_index(self, surf_ts, times):
+
+        times = np.append(times, np.Inf)
+
+        out = np.empty(surf_ts.size)
+        out.fill(np.NaN)
+
+        for i in range(times.size -1):
+
+            marker_mask = np.logical_and(surf_ts < times[i + 1], surf_ts >= times[i])
+
+            out[marker_mask] = i
+
+
+        return out
+
+
+    def get_pixel_accuracy(self, surface_list, test_markers, recent_input, recent_labels, marker_times):
+
+        #Make surface list one list
+        surface_list = [i for s in surface_list for i in s ]
+        #use recent input and recent_labels (ref pos)
+        matched_surf = self.closest_matches_monocular_surface(recent_input, recent_labels, surface_list)#
+
+        matched_surf_tf = np.array([s['ref']['timestamp'] for s in matched_surf])
+
+        marker_at_time = self.get_marker_index(matched_surf_tf, marker_times)
+
+
+        all_avg_errors = np.empty(np.array(test_markers.shape))
+        all_std_errors = np.empty(np.array(test_markers.shape))
+
+        msg = 'Accuracy//{}.Precision//{}'.format(all_avg_errors, all_std_errors)
+
+        self.send_rply('calibration', msg)
+
+        # plt.figure()
+        # ax = plt.gca()
+        # colors = sns.color_palette("Set1", 12)
+        # ax.set_xlim([0, 1])
+        # ax.set_ylim([0, 1])
+
+        for i in range(len(test_markers)):
+            m0 = np.array(matched_surf)[marker_at_time == i].tolist()
+
+            norm_pos = [m['surface']['norm_pos'] for m in m0]
+
+            # ax.scatter(np.array(norm_pos)[:,0], np.array(norm_pos)[:,1], color = colors[i])
+
+            error = (np.array(norm_pos) - test_markers[0])
+
+            all_avg_errors[i] = error.mean(0)
+            all_std_errors[i] = error.std(0)
+
+            mean_error = np.mean(all_avg_errors)
+            std_error = np.mean(all_std_errors)
+
+            
+
+      
+        # plt.plot(np.array(test_markers)[:,0], np.array(test_markers)[:,1], 'ko', ms =10)
+        # plt.legend()
+
+        # plt.savefig('calibration.jpg')
+
+        return all_avg_errors, all_std_errors 

@@ -65,6 +65,8 @@ class Surface_Tracker_undist(Plugin):
         self.button =  None
         self.add_button = None
 
+        self.intrinisics = self.g_pool.capture.intrinsics
+
     def load_surface_definitions_from_file(self):
         # all registered surfaces
         self.surface_definitions = Persistent_Dict(os.path.join(self.g_pool.user_dir,'surface_definitions'))
@@ -191,9 +193,8 @@ class Surface_Tracker_undist(Plugin):
 
     def recent_events(self, events):
 
-  
-
         frame = events.get('frame')
+
         if not frame:
             return
         self.img_shape = frame.height,frame.width,3

@@ -142,11 +142,15 @@ class Accuracy_Visualizer(Plugin):
 
     def recalculate(self):
         assert self.recent_input and self.recent_labels
+        
         prediction = self.g_pool.active_gaze_mapping_plugin.map_batch(self.recent_input)
         results = self.calc_acc_prec_errlines(prediction, self.recent_labels,
                                               self.g_pool.capture.intrinsics)
         logger.info('Angular accuracy: {}. Used {} of {} samples.'.format(*results[0]))
         logger.info("Angular precision: {}. Used {} of {} samples.".format(*results[1]))
+
+        print(results[0])
+        print(results[1])
         self.accuracy = results[0].result
         self.precision = results[1].result
         self.error_lines = results[2]

@@ -65,6 +65,8 @@ class Venlab_Marker_Calibration(Calibration_Plugin):
 
         self.marker_times = [] #The time at which a new marker is on screen (starting for change to second marker)
 
+
+
     def stop(self):
         audio.say("Stopping  {}".format(self.mode_pretty))
         logger.info('Stopping  {}'.format(self.mode_pretty))
