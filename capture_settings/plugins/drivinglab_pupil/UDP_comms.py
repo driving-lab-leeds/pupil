@@ -143,18 +143,18 @@ class pupil_comms:
 
         self.recv_process.join(.01)
 
-    def reset_time(self):
+    def reset_time(self, timestamp):
         """Reset the timer on eyetrike"""
 
-        self.send_msg('T 0.00')
+        self.send_msg('T ' str(timestamp))
 
 
-    def start_trial(self, fname):
+    def start_trial(self, fname, timestamp = 0.00):
         """Start recording a new file on eyetrike"""
 
-        #reset time
+        #reset time with given timestamp
         print "reset timestamp"
-        self.reset_time()
+        self.reset_time(timestamp)
         
         #start eyetracking recording
         self.send_msg('R ' + fname)
