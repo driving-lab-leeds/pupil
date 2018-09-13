@@ -126,6 +126,8 @@ class pupil_comms:
         self.send_msg('__test')
         time.sleep(0.5)
 
+        self.send_msg('__time ' + str(time.time()))
+
         msg_recv = self.poll_msg()
 
         if 'comms.online' in msg_recv:
@@ -146,7 +148,9 @@ class pupil_comms:
     def reset_time(self, timestamp):
         """Reset the timer on eyetrike"""
 
-        self.send_msg('T ' str(timestamp))
+        self.send_msg('T ' + str(timestamp))
+
+        print "reset timestamp to " + str(timestamp)        
 
 
     def start_trial(self, fname, timestamp = 0.00):
@@ -214,23 +218,40 @@ if __name__ == '__main__':
 
     test_markers = [[5, 2], [6,20], [9,3]]
     #If debugging on eyetrike
-    comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5020, SIZE = 1024)
+    #comms = pupil_comms(send_IP = '0.0.0.0', send_PORT = 5000, recv_IP = '0.0.0.0', recv_PORT = 5020, SIZE = 1024)
+    comms = pupil_comms()
 
     #Check the connection is live
     connected = comms.check_connection()
+
+    
 
     if connected:
 
         comms.send_marker_positions(test_markers)
 
-        #Test in cosole
-        comms.send_message_from_console()
+        # #Test in cosole
+        # comms.send_message_from_console()        
+
+
 
     else:
 
         raise Exception("Not connected to comms")
+    
+    currtime = time.time()
+    #comms.reset_time(currtime)
+    comms.reset_time(0)
 
-    print (comms.poll_msg())
+    polled = False
+    while not polled:
+        msgs = comms.poll_msg()
+        if len(msgs) > 0:
+            polled = True
+            print (msgs)
+    #print (comms.poll_msg())
+
+    print('After poll: ' + str(time.time()))
 
     # comms.send_message_from_console()
     
