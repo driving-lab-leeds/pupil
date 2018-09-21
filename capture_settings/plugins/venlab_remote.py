@@ -149,12 +149,21 @@ class Venlab_Remote(Plugin):
         print(msg)
         accepted_commands = ('R','r','C','c','T','t')
 
+    
         if msg[0] in accepted_commands:
 
             self.req.send_string(msg) #send through to pupil_remote
-            recv = self.req.recv_string() #get bounce-back                
-        
+            recv = self.req.recv_string() #get bounce-back      
+
             self.send_rply('ipc', recv)
+
+            if msg[0] == 'T':
+                #Send timestamp back
+                self.req.send_string('t') #send through to pupil_remote
+                recvtime = self.req.recv_string() #get bounce-back     
+                self.send_rply('Timesync', 'timestamp: ' + str(recvtime))        
+        
+            
 
         elif msg[0] == 'A':
 
@@ -206,6 +215,7 @@ class Venlab_Remote(Plugin):
 
             print("venlab_remote: replying to test message")
             self.send_rply('comms', 'online')
+
 
         elif msg[:8] == 'markers:':
 
