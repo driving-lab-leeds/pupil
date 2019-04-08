@@ -3,7 +3,7 @@
 
 import platform, sys, os, os.path, numpy, ntpath,glob
 
-av_hidden_imports = ['av.format','av.packet','av.buffer','av.bytesource','av.frame','av.stream','av.descriptor','av.plane','av.audio.plane','av.container.streams','av.dictionary', 'av.audio.stream','av.subtitles','av.subtitles.stream','av.subtitles.subtitle','av.video.reformatter','av.video.plane','av.option','av.container.pyio','av.video.codeccontext','av.audio.codeccontext','av.filter.context','av.filter.link','av.filter.pad']
+av_hidden_imports = ['av.format','av.packet','av.buffer','av.bytesource','av.frame','av.stream','av.descriptor','av.plane','av.audio.plane','av.container.streams','av.dictionary', 'av.audio.stream','av.subtitles','av.subtitles.stream','av.subtitles.subtitle','av.video.reformatter','av.video.plane','av.option','av.container.pyio','av.video.codeccontext','av.audio.codeccontext','av.filter.context','av.filter.link','av.filter.pad','av.buffered_decoder','cysignals']
 pyglui_hidden_imports = ['pyglui.pyfontstash.fontstash','pyglui.cygl.shader','pyglui.cygl.utils']
 
 from pyglui import ui
@@ -36,9 +36,10 @@ if platform.system() == 'Darwin':
                    a.zipfiles,
                    a.datas,
                    [('libglfw.dylib', '/usr/local/lib/libglfw.dylib','BINARY')],
-                   [('OpenSans-Regular.ttf',ui.get_opensans_font_path(),'DATA')],
-                   [('Roboto-Regular.ttf',ui.get_roboto_font_path(),'DATA')],
-                   [('pupil_icons.ttf',ui.get_pupil_icons_font_path(),'DATA')],
+                   [('pyglui/OpenSans-Regular.ttf',ui.get_opensans_font_path(),'DATA')],
+                   [('pyglui/Roboto-Regular.ttf',ui.get_roboto_font_path(),'DATA')],
+                   [('pyglui/pupil_icons.ttf',ui.get_pupil_icons_font_path(),'DATA')],
+                   Tree('../../pupil_src/shared_modules/calibration_routines/fingertip_calibration/weights/', prefix='weights'),
                    strip=None,
                    upx=True,
                    name='Pupil Service')
@@ -90,10 +91,11 @@ elif platform.system() == 'Linux':
                    a.zipfiles,
                    a.datas,
                    [('libglfw.so', '/usr/lib/x86_64-linux-gnu/libglfw.so','BINARY')],
-                   [('libGLEW.so', '/usr/lib/x86_64-linux-gnu/libGLEW.so','BINARY')],
-                   [('OpenSans-Regular.ttf',ui.get_opensans_font_path(),'DATA')],
-                   [('Roboto-Regular.ttf',ui.get_roboto_font_path(),'DATA')],
-                   [('pupil_icons.ttf',ui.get_pupil_icons_font_path(),'DATA')],
+                  [('libGLEW.so', '/usr/lib/x86_64-linux-gnu/libGLEW.so','BINARY')],
+                  [('pyglui/OpenSans-Regular.ttf',ui.get_opensans_font_path(),'DATA')],
+                   [('pyglui/Roboto-Regular.ttf',ui.get_roboto_font_path(),'DATA')],
+                   [('pyglui/pupil_icons.ttf',ui.get_pupil_icons_font_path(),'DATA')],
+                   Tree('../../pupil_src/shared_modules/calibration_routines/fingertip_calibration/weights/', prefix='weights'),
                    strip=True,
                    upx=True,
                    name='pupil_service')
@@ -160,9 +162,9 @@ elif platform.system() == 'Windows':
                        a.datas,
                        [('PupilDrvInst.exe','../../pupil_external/PupilDrvInst.exe','BINARY')],
                        [('glfw3.dll','../../pupil_external/glfw3.dll','BINARY')],
-                       [('OpenSans-Regular.ttf', os.path.join(package_path, 'pyglui/OpenSans-Regular.ttf'),'DATA')],
-                 [('Roboto-Regular.ttf', os.path.join(package_path, 'pyglui/Roboto-Regular.ttf'),'DATA')],
-                 [('pupil_icons.ttf', os.path.join(package_path, 'pyglui/pupil_icons.ttf'),'DATA')],
+                       [('pyglui/OpenSans-Regular.ttf', os.path.join(package_path, 'pyglui/OpenSans-Regular.ttf'),'DATA')],
+                       [('pyglui/Roboto-Regular.ttf', os.path.join(package_path, 'pyglui/Roboto-Regular.ttf'),'DATA')],
+                       [('pyglui/pupil_icons.ttf', os.path.join(package_path, 'pyglui/pupil_icons.ttf'),'DATA')],
                        np_dll_list,
                        strip=False,
                        upx=True,
