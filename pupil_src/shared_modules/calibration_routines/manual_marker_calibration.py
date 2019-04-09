@@ -35,7 +35,7 @@ class Manual_Marker_Calibration(Calibration_Plugin):
         Calibration only collects data at the good positions
     """
 
-    def __init__(self, g_pool):
+    def __init__(self, g_pool, marker_distance_threshold):
         super().__init__(g_pool)
         self.pos = None
         self.smooth_pos = 0.0, 0.0
@@ -48,6 +48,8 @@ class Manual_Marker_Calibration(Calibration_Plugin):
         self.auto_stop = 0
         self.auto_stop_max = 30
 
+        self.marker_distance_threshold = marker_distance_threshold
+
         self.menu = None
 
         self.circle_tracker = CircleTracker()
@@ -58,6 +60,13 @@ class Manual_Marker_Calibration(Calibration_Plugin):
         self.menu.label = "Manual Calibration"
         self.menu.append(
             ui.Info_Text("Calibrate gaze parameters using a handheld marker.")
+        )
+
+        self.menu.append(
+            ui.Slider(
+                "marker_distance_threshold", self, step=0.01, min=0.0, max=1.0,
+                label="Marker distance threshold"
+            )
         )
 
     def start(self):
@@ -160,7 +169,7 @@ class Manual_Marker_Calibration(Calibration_Plugin):
 
                 # start counter if ref is resting in place and not at last sample site
                 if self.counter <= 0:
-                    if self.smooth_vel < 0.01 and sample_ref_dist > 0.1:
+                    if self.smooth_vel < 0.01 and sample_ref_dist > self.marker_distance_threshold:
                         self.sample_site = self.smooth_pos
                         audio.beep()
                         logger.debug(
@@ -304,6 +313,11 @@ class Manual_Marker_Calibration(Calibration_Plugin):
                         )
         else:
             pass
+    
+    def get_init_dict(self):
+        d = {}
+        d["marker_distance_threshold"] = self.marker_distance_threshold
+        return d
 
     def deinit_ui(self):
         """gets called when the plugin get terminated.
