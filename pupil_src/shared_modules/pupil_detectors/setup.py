@@ -104,7 +104,7 @@ else:
     python_version = sys.version_info
     if platform.system() == "Linux":
         # boost_python-py34
-        boost_lib = "boost_python-py" + str(python_version[0]) + str(python_version[1])
+        boost_lib = "boost_python" + str(python_version[0]) + str(python_version[1])
     else:
         boost_lib = "boost_python" + str(python_version[0]) + str(python_version[1])
     libs = ["ceres", boost_lib] + opencv_libraries
