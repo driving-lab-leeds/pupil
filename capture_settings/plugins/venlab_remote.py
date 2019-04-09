@@ -250,8 +250,8 @@ class Venlab_Remote(Plugin):
             self.recent_labels = notification['ref_list']
 
             #Get surface data (optionally used to get normalised position data)
-            self.recent_surfaces = notification['surface_list']
-            self.marker_times = notification['marker_times']
+            self.recent_surfaces = notification.get('surface_list', [])
+            self.marker_times = notification.get('marker_times', [])
 
             if (self.recent_surfaces) and (self.test_markers is not None):
 
